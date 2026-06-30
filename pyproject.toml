@@ -36,6 +36,10 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+api = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
 
 [project.urls]
 Homepage = "https://github.com/mohamed-em2m/google-commands"
