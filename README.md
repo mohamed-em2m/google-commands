@@ -1,63 +1,94 @@
 # Audio Command Recognition
 
-This project implements a simple real-time audio command recognition system using three different pre-trained deep learning models. The system records audio from the microphone, processes the recording, and predicts a spoken command by combining the outputs from three different models (1D CNN, 2D CNN, and LSTM). The models are loaded from saved `.h5` files and the predictions are further processed with a label encoder stored using `joblib`.
+Real-time spoken command recognition using an ensemble of three deep learning models (1D CNN, 2D CNN, LSTM). The system records audio from the microphone, extracts MFCC features, and predicts the spoken command via majority voting.
+
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+python -m google_commands
+```
+
+Say **"stop"** to exit.
 
 ## Features
 
-- **Real-time audio recording:** Uses the microphone to capture a 1-second audio clip.
-- **Audio processing:** Resamples audio and extracts MFCC features using `librosa`.
-- **Ensemble prediction:** Combines predictions from three pre-trained models to determine the final command.
-- **Stop command:** The system continuously listens until the predicted command is `"stop"`.
-
-## Files
-
-- **cnn1d.h5**: Pre-trained 1D CNN model.
-- **cnn2d.h5**: Pre-trained 2D CNN model.
-- **lstm.h5**: Pre-trained LSTM model.
-- **encode**: Joblib file that stores the label encoder.
-- **temp.wav**: Temporary file to store recorded audio (generated at runtime).
-- **main.py**: Python script containing the source code.
-
-## Requirements
-
-The project uses several libraries for deep learning, audio processing, and recording. See the [`requirements.txt`](requirements.txt) file for the complete list.
+- **Real-time inference** — records 1-second audio chunks and classifies them instantly
+- **35-word vocabulary** — digits 0–9, directional commands, and common words
+- **Ensemble voting** — combines 1D CNN, 2D CNN, and LSTM predictions (majority wins, LSTM breaks ties)
+- **Silence detection** — ignores quiet recordings automatically
+- **Installable package** — `pip install -e .` to use the `google-commands` CLI
 
 ## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/yourproject.git
-   cd yourproject
+```bash
+# Clone the repository
+git clone https://github.com/mohamed-em2m/google-commands.git
+cd google-commands
 
-    Install dependencies:
+# Install dependencies
+pip install -r requirements.txt
 
-    pip install -r requirements.txt
+# (Optional) Install as a package
+pip install -e .
+```
 
-    Ensure the following files are present in the project directory:
+## Usage
 
-        cnn1d.h5
+```bash
+# Continuous listening mode
+python -m google_commands
 
-        cnn2d.h5
+# Single prediction from microphone
+python -m google_commands --once
 
-        lstm.h5
+# Predict a file
+python -m google_commands --once --file path/to/audio.wav
 
-        encode (the joblib file containing the label encoder)
+# Adjust interval between recordings (default 1s)
+python -m google_commands --interval 0.5
 
-Usage
+# Enable debug logging
+python -m google_commands --verbose
+```
 
-Run the main script:
+If installed via `pip install -e .`:
 
-python main.py
+```bash
+google-commands
+google-commands --once
+```
 
-The system will start recording audio from your microphone, predict the spoken command, and print the prediction. When the command "stop" is predicted, the program will exit.
-Notes
+## Project Structure
 
-    Audio Input: Ensure that your microphone is set up and working properly.
+```
+├── src/google_commands/       # Main package
+│   ├── config.py              # Constants and paths
+│   ├── audio.py               # Recording and MFCC extraction
+│   ├── models.py              # Model loading and inference
+│   ├── pipeline.py            # Ensemble prediction pipeline
+│   └── cli.py                 # Command-line interface
+├── models/                    # Pre-trained model files (.h5)
+├── notebooks/                 # Jupyter notebooks for training
+├── tests/                     # Test suite
+├── scripts/                   # Utility scripts
+├── pyproject.toml             # Project metadata and build config
+├── requirements.txt           # Runtime dependencies
+└── README.md
+```
 
-    Models and Encoder: Make sure the pre-trained model files and the encoder file are correctly placed in the working directory.
+## Models
 
-    Dependencies: If you encounter any issues with audio recording or processing, verify that your system’s audio drivers and permissions are correctly configured.
+Three pre-trained models are included:
 
-License
+| Model | Input Shape | Architecture |
+|-------|-------------|--------------|
+| 1D CNN | `(44×13,)` | 1D convolution over MFCC features |
+| 2D CNN | `(44, 13, 1)` | 2D convolution treating MFCC as image |
+| LSTM | `(44, 13)` | Recurrent sequence model |
 
-This project is licensed under the MIT License.
+Each model was trained on the [TensorFlow Speech Commands dataset](https://www.tensorflow.org/datasets/catalog/speech_commands) (v0.02).
+
+## License
+
+MIT
